@@ -1,28 +1,12 @@
-class NotForSending(Exception):
-    """Не для пересылки в телеграм."""
+class TelegramBotExceptions(Exception):
+    """Базовый класс Исключений для телеграм бота."""
+
     pass
 
 
-class ProblemDescriptions(Exception):
-    """Описания проблемы."""
-    pass
+class GeneralException(TelegramBotExceptions):
+    """Кастоиное исключение для работы телеграм бота."""
 
-
-class InvalidResponseCode(Exception):
-    """Не верный код ответа."""
-    pass
-
-
-class ConnectinError(Exception):
-    """Не верный код ответа."""
-    pass
-
-
-class EmptyResponseFromAPI(NotForSending):
-    """Пустой ответ от API."""
-    pass
-
-
-class TelegramError(NotForSending):
-    """Ошибка телеграма."""
-    pass
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
