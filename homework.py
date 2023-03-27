@@ -18,12 +18,12 @@ logging.config.fileConfig('logging_config.ini', disable_existing_loggers=False)
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-RETRY_TIME = 600
+RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
 
-HOMEWORK_STATUSES = {
+HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -37,6 +37,7 @@ def send_message(bot: telegram.Bot, message: str):
     logging.info('Отправка сообщения в Telegram чат.')
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
+        logging.debug('Сообщение успешно отправлено в Telegram чат.')
     except telegram.error.TelegramError:
         logger.exception('Сообщение не отпралено.')
 
@@ -78,9 +79,11 @@ def parse_status(homework: dict) -> str:
     """Проверка статуса домашней работы."""
     logging.info('Проверка статуса домашней работы.')
     homework_name = homework.get('homework_name')
+    if homework_name is None:
+        raise KeyError('Ответ API не содержит ключа homework_name.')
     homework_status = homework.get('status')
-    if homework_status in HOMEWORK_STATUSES:
-        verdict = HOMEWORK_STATUSES.get(homework_status)
+    if homework_status in HOMEWORK_VERDICTS:
+        verdict = HOMEWORK_VERDICTS.get(homework_status)
     else:
         raise KeyError('Неизвестный статус домашней работы!'
                        f'Получен статус - {homework_status}')
@@ -107,10 +110,12 @@ def main():
         try:
             response = get_api_answer(current_timestamp)
             response_json = check_response(response)
-            if response_json != []:
+            if response_json:
                 message = parse_status(response_json[0])
-            message = 'Обновлений нет.'
-            send_message(bot, message)
+                send_message(bot, message)
+            else:
+                message = 'Обновлений нет.'
+                send_message(bot, message)
             current_timestamp = response.get('current_date')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
@@ -119,7 +124,7 @@ def main():
                 last_sent_error_message = message
             logger.exception(message)
         finally:
-            time.sleep(RETRY_TIME)
+            time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
