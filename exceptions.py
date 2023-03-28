@@ -5,7 +5,7 @@ class TelegramBotExceptions(Exception):
 
 
 class APIConnectionError(TelegramBotExceptions):
-    """Кастомное исключение для работы телеграм бота."""
+    """Ошибка, возникающая при разрыве связи с API."""
 
     def __init__(self, message):
         self.message = message
@@ -13,7 +13,7 @@ class APIConnectionError(TelegramBotExceptions):
 
 
 class APIResponseError(TelegramBotExceptions):
-    """Кастомное исключение для работы телеграм бота."""
+    """Ошибка, возникающая при некорректном ответе от API."""
 
     def __init__(self, message):
         self.message = message

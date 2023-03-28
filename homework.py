@@ -53,7 +53,7 @@ def get_api_answer(current_timestamp) -> dict:
     except Exception as error:
         message = f'Нет связи с API yandex practicum {error}'
         logger.exception(message)
-        raise APIConnectionError(            
+        raise APIConnectionError(
             f'{message}. '
             f'Ответ от API - {response.reason} '
             f'Содержание ответа - {response.text}'
