@@ -4,8 +4,16 @@ class TelegramBotExceptions(Exception):
     pass
 
 
-class GeneralException(TelegramBotExceptions):
-    """Кастоиное исключение для работы телеграм бота."""
+class APIConnectionError(TelegramBotExceptions):
+    """Кастомное исключение для работы телеграм бота."""
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
+class APIResponseError(TelegramBotExceptions):
+    """Кастомное исключение для работы телеграм бота."""
 
     def __init__(self, message):
         self.message = message

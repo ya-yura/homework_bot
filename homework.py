@@ -9,7 +9,7 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
-from exceptions import GeneralException
+from exceptions import APIResponseError, APIConnectionError
 
 load_dotenv()
 
@@ -53,11 +53,15 @@ def get_api_answer(current_timestamp) -> dict:
     except Exception as error:
         message = f'Нет связи с API yandex practicum {error}'
         logger.exception(message)
-        raise GeneralException(message)
+        raise APIConnectionError(            
+            f'{message}. '
+            f'Ответ от API - {response.reason} '
+            f'Содержание ответа - {response.text}'
+        )
     if response.status_code != HTTPStatus.OK:
-        raise GeneralException(
-            f'Ответ от API - {response.reason}'
-            f'(Код ответа - {response.status_code}.'
+        raise APIResponseError(
+            f'Ожидался код 200, но получен код {response.status_code}. '
+            f'Ответ от API - {response.reason} '
             f'Содержание ответа - {response.text}'
         )
     logging.debug('Статус ответа от API - OK.')
@@ -68,7 +72,10 @@ def check_response(response: dict) -> dict:
     """Проверка ответа от API yandex practicum."""
     logging.info('Проверка ответа от API yandex practicum.')
     if not isinstance(response, dict):
-        raise TypeError('Ответ от API yandex practicum не является словарем.')
+        raise TypeError(
+            f'Ответ от API yandex practicum имеет тип '
+            f'{type(response)}, ожидается словарь.'
+        )
     logging.debug('Получен список домашних работ.')
     if not isinstance(response.get('homeworks'), list):
         raise TypeError('Домашние работы не возвращаются в виде списка.')
@@ -103,7 +110,7 @@ def main():
     last_sent_error_message = ''
     if not check_tokens():
         logger.critical('Отсутствуют переменные среды!')
-        sys.exit()
+        sys.exit('Программа завершена')
     current_timestamp = int(time.time())
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     while True:
